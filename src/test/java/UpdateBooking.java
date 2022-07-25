@@ -1,11 +1,16 @@
 import base.baseSteps;
 import domain.booking.BookingDates;
 import domain.booking.BookingRequest;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.testng.annotations.Test;
 import java.time.LocalDate;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.*;
+import static org.testng.Assert.assertNotEquals;
+
 
 public class UpdateBooking  extends baseSteps {
 
@@ -18,13 +23,17 @@ public class UpdateBooking  extends baseSteps {
 
     @Test
     public void updateBookingWithValidDetails(){
+
+        logger.info("Create a new booking and retrieve booking id");
         CreateBooking createBooking=new CreateBooking();
         BookingRequest bookingRequest=new BookingRequest();
         BookingDates bookingDates=new BookingDates();
         Integer bookingId= createBooking.createABookingWithDefaultValues();
+        logger.info("Create a new auth token and retrieve token value");
         CreateToken newToken=new CreateToken();
         String token = newToken.createToken();
 
+        logger.info("Set the updated values for firstName, lastName and Checkout date");
         LocalDate now = LocalDate.now();
         String firstName="Angelina";
         String lastName="Jolie";
@@ -40,7 +49,21 @@ public class UpdateBooking  extends baseSteps {
                 pathParam("id", bookingId).
                 body(bookingRequest).log().body().
                 when().
-                put("/booking/{id}").then().log().all().extract().response();;
+                put("/booking/{id}").then().log().all().extract().response();
+
+        response.then().spec(responseSpecification);
+        JsonPath responseJson=response.jsonPath();
+
+        assertNotEquals(responseJson.getMap("bookingdates").size(),null);
+
+        logger.info("Mapping the response json to a map object and validating response");
+        Map bookedDates=responseJson.getMap("bookingdates");
+
+        logger.info("Validating the response object is updated");
+        assertEquals(firstName,responseJson.get("firstname"));
+        assertEquals(lastName,responseJson.get("lastname"));
+        assertEquals(checkOut,bookedDates.get("checkout"));
+
 
     }
 
@@ -53,6 +76,8 @@ public class UpdateBooking  extends baseSteps {
         String firstName="Angelina";
         bookingRequest.setFirstName(firstName);
 
+        logger.info("Making a request with invalid token");
+
         Response response = given().
                 spec(requestSpecification).
                 header("Cookie", "token="+1234).
@@ -61,6 +86,7 @@ public class UpdateBooking  extends baseSteps {
                 when().
                 put("/booking/{id}").then().log().all().extract().response();;
 
+        logger.info("Request failed with 403 error code");
                 assertEquals(403,response.getStatusCode());
     }
 
@@ -73,6 +99,7 @@ public class UpdateBooking  extends baseSteps {
         CreateToken newToken=new CreateToken();
         String token = newToken.createToken();
 
+        logger.info("Making a request with invalid bookingId");
         Response response = given().
                 spec(requestSpecification).
                 header("Cookie", "token="+token).
@@ -82,6 +109,6 @@ public class UpdateBooking  extends baseSteps {
                 put("/booking/{id}").then().log().all().extract().response();;
 
         assertEquals(405,response.getStatusCode());
-
+        logger.info("Request failed with 403 error code");
     }
 }

@@ -8,7 +8,8 @@ import org.testng.annotations.Test;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class GetBooking extends baseSteps {
 
@@ -23,7 +24,7 @@ public class GetBooking extends baseSteps {
     CreateBooking createBooking=new CreateBooking();
     BookingRequest bookingRequest=new BookingRequest();
     BookingDates bookingDates=new BookingDates();
-
+    logger.info("Create a new booking with default values, then extract booking id");
     Integer bookingId= createBooking.createABookingWithDefaultValues();
         Response response = given().
                 spec(requestSpecification).
@@ -34,10 +35,10 @@ public class GetBooking extends baseSteps {
         response.then().spec(responseSpecification);
 
         JsonPath responseJson = response.jsonPath();
-        assertEquals(responseJson.get("bookingid"),null);
+        assertNull(responseJson.get("bookingid"));
 
         Map bookedDates=responseJson.getMap("bookingdates");
-
+        logger.info("Assert all the details retrieved match the original booking");
         assertEquals(bookingRequest.getFirstName(),responseJson.get("firstname"));
         assertEquals(bookingRequest.getLastName(),responseJson.get("lastname"));
         assertEquals(bookingRequest.getDepositPaid(),responseJson.get("depositpaid"));
@@ -52,6 +53,7 @@ public class GetBooking extends baseSteps {
 
     @Test
     public void getBookingHappyWithInvalidId() {
+        logger.info("Make a Get request with non exisiting booking id should return not found error");
                Response response = given().
                 spec(requestSpecification).
                 pathParam("id", "-31").
