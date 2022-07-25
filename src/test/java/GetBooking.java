@@ -13,6 +13,18 @@ import static org.testng.Assert.assertNull;
 
 public class GetBooking extends baseSteps {
 
+
+    public Response returnGetIdResponse(Integer bookingId) {
+        Response response = given().
+                spec(requestSpecification).
+                pathParam("id", bookingId).
+                when().
+                get("/booking/{id}").then().log().all().extract().response();
+
+        response.then().spec(responseSpecification);
+        return response;
+    }
+
     /* Get Booking API lets user to retrieve an existing booking.
     Tests covered as part of this test suite are:
     1. Create and retrieve a  booking.

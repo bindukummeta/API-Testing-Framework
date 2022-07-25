@@ -64,6 +64,12 @@ public class UpdateBooking  extends baseSteps {
         assertEquals(lastName,responseJson.get("lastname"));
         assertEquals(checkOut,bookedDates.get("checkout"));
 
+        logger.info("Make a GET API call with the booking id and validate the response has updated details");
+        GetBooking getBooking =new GetBooking();
+        Response getResponse =getBooking.returnGetIdResponse(bookingId);
+        JsonPath getResponseJson=getResponse.jsonPath();
+        assertEquals(firstName,getResponseJson.get("firstname"));
+        assertEquals(lastName,getResponseJson.get("lastname"));
 
     }
 
